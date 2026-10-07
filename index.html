@@ -360,17 +360,23 @@ function parseLevel(def) {
         crumbleT: 0, rollA: 0,
         ramp: !!m.ramp,
         blocker: null,
+        distTraveled: 0, // accumulates while rolling
+        clearDist: 0,    // walls ignored until traveled past this (for inset traps)
       };
       if (m.blocker) {
         const bhp = m.blocker.hp || 3;
         // cube sits in front of the boulder, in the facing direction
         // (blocker is 4.8^3, half=2.4)
         const gap = 0.6;
+        const blockDist = bd.r + 2.4 + gap;
         bd.blocker = {
-          x: bx + dx * (bd.r + 2.4 + gap),
-          z: bz + dz * (bd.r + 2.4 + gap),
+          x: bx + dx * blockDist,
+          z: bz + dz * blockDist,
           hp: bhp, maxHp: bhp, destroyed: false,
         };
+        // ignore walls until the boulder is past the blocker location,
+        // so the trap can be inset into a wall without instant collision
+        bd.clearDist = blockDist + bd.r;
         bd.state = 'blocked'; // waits for the cube to be destroyed
       }
       L.boulders.push(bd);
@@ -603,10 +609,14 @@ function updateGame(S, dt, input) {
         const nx = bd.x + bd.dx * bd.speed * dt;
         const nz = bd.z + bd.dz * bd.speed * dt;
         bd.rollA += (bd.speed * dt) / bd.r; // rolling rotation
+        bd.distTraveled += bd.speed * dt;
         let hitSolid = false;
-        // walls (skip destroyed)
+        // walls (skip destroyed; also skip until past the blocker location so
+        // inset traps don't instantly collide with the wall they're in)
+        const wallsArmed = bd.distTraveled >= bd.clearDist;
         for (const wl of S.level.walls) {
           if (wl.destroyed) continue;
+          if (!wallsArmed) continue;
           const sx = wl.x2 - wl.x1, sz = wl.z2 - wl.z1;
           const l2 = sx * sx + sz * sz;
           let t = l2 > 1e-9 ? ((nx - wl.x1) * sx + (nz - wl.z1) * sz) / l2 : 0;

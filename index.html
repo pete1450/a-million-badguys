@@ -1027,6 +1027,11 @@ function updateGame(S, dt, input) {
         b.collected = true; // missed, hide
       }
     }
+    // prune collected banners so the array (and instance list) doesn't grow
+    // forever — spawns keep flowing until the level ends
+    if (v.banners.length > 96) {
+      v.banners = v.banners.filter(b => !b.collected);
+    }
   }
 
   // ---- win / lose ----
@@ -1673,12 +1678,12 @@ function buildWorld(level) {
     var faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
     // BoxGeometry groups: [+x, -x, +y, -y, +z, -z]; +z (index 4) gets the label
     var bannerMesh = new THREE.InstancedMesh(bannerGeo,
-      [sideMat, sideMat, sideMat, sideMat, faceMat, sideMat], 64);
+      [sideMat, sideMat, sideMat, sideMat, faceMat, sideMat], 256);
     bannerMesh.frustumCulled = false;
     bannerMesh.castShadow = true;
     // init all instances to hidden
     _eul.set(0, 0, 0); _q.setFromEuler(_eul); _scl.set(0.001, 0.001, 0.001); _pos.set(0, -10, 0);
-    for (var bii = 0; bii < 64; bii++) { _m4.compose(_pos, _q, _scl); bannerMesh.setMatrixAt(bii, _m4); }
+    for (var bii = 0; bii < 256; bii++) { _m4.compose(_pos, _q, _scl); bannerMesh.setMatrixAt(bii, _m4); }
     bannerMesh.count = 64;
     bannerMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     world.add(bannerMesh);
@@ -2534,7 +2539,9 @@ function render(dt) {
     // banners ARE the pickups: ONE merged object (box + label on front face).
     // Lined up on the deck until the column falls, then drift toward the mob.
     var blist = vv.v.banners;
-    for (var bi = 0; bi < blist.length; bi++) {
+    var bcap = 256; // must match InstancedMesh capacity above
+    var bn = Math.min(blist.length, bcap);
+    for (var bi = 0; bi < bn; bi++) {
       var b = blist[bi];
       if (b.collected) {
         setInst(vv.bannerMesh, bi, 0, -10, 0, 0.001, 0.001, 0.001, 0);
@@ -2553,7 +2560,7 @@ function render(dt) {
       }
     }
     // hide unused slots
-    for (var bhi = blist.length; bhi < 64; bhi++) {
+    for (var bhi = bn; bhi < bcap; bhi++) {
       setInst(vv.bannerMesh, bhi, 0, -10, 0, 0.001, 0.001, 0.001, 0);
     }
     vv.bannerMesh.instanceMatrix.needsUpdate = true;

@@ -173,6 +173,9 @@
 
 </script>
 <script>
+var LEVELS = [{"name":"Bridge Choice","width":100,"depth":88,"player":{"at":50,"hp":150,"fireRate":4,"bulletDamage":1,"bulletSpeed":46,"troopRate":1,"mobSpeed":20,"pierce":0},"modules":[{"type":"enemy","kind":"base","from":28,"to":70,"perSecond":1,"count":1000,"hp":1,"speed":2.1,"damage":1},{"type":"enemy","kind":"big","at":44,"perSecond":0.016,"count":2,"hp":300,"speed":1.12,"damage":25,"healthbar":true},{"type":"wall","at":26},{"type":"wall","at":72},{"type":"wall","from":[45,30],"to":[55,30],"destructible":true,"hp":5},{"type":"boulder","at":[32,50],"angle":60,"speed":14,"ramp":true,"blocker":{"hp":3}},{"type":"viaduct","from":0,"to":23,"shots":2,"color":2846681,"contents":{"kind":"pickup","value":1,"perSecond":1,"count":120,"speed":3.45,"lines":1}},{"type":"viaduct","from":74,"to":97,"shots":10,"color":15909424,"contents":{"kind":"pickup","value":10,"perSecond":1,"count":120,"speed":3.45,"lines":1}}]},{"depth":88,"modules":[{"count":100,"damage":1,"from":43,"hp":1,"kind":"base","perSecond":1,"speed":2.1,"to":53,"type":"enemy"},{"at":39,"type":"wall"},{"at":59,"type":"wall"}],"name":"Level 1","player":{"at":50,"bulletDamage":1,"bulletSpeed":46,"fireRate":4,"hp":150,"mobSpeed":20,"pierce":0,"troopRate":1},"width":100},{"depth":88,"modules":[{"count":200,"damage":1,"from":12,"healthbar":false,"hp":1,"kind":"base","perSecond":1,"speed":2.1,"to":53,"type":"enemy"},{"color":2846681,"contents":{"kind":"pickup","speed":3.45,"value":1},"from":72,"shots":3,"to":84,"type":"viaduct"},{"at":57,"type":"wall"},{"at":10,"type":"wall"}],"name":"Level 2","player":{"at":50,"bulletDamage":1,"bulletSpeed":46,"fireRate":4,"hp":150,"mobSpeed":20,"pierce":0,"troopRate":1},"width":100}];
+</script>
+<script>
 /* ============================================================================
  * CROWD CONTROL — pure game logic (no DOM, no THREE). Runs in node for tests.
  *
@@ -1025,7 +1028,10 @@ function updateGame(S, dt, input) {
 // ================= Level(s) =================
 // Authored in INDEXED units (0..99). parseLevel scales x by IDX2W (0.5) so the
 // physical world stays 50 units wide — denser lanes, same playfield size.
-const LEVELS = [
+// LEVELS is injected by build.py from levels/*.json (see build.py).
+// When running under node directly (tests), fall back to the level 0
+// demonstrator so the suites don't need the build step.
+var LEVELS = (typeof LEVELS !== 'undefined' && LEVELS) || [
   {
     name: 'Bridge Choice',
     width: 100,

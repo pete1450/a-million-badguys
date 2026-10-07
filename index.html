@@ -854,6 +854,7 @@ function updateGame(S, dt, input) {
       // walls: segments (vertical or angled); push out along the normal so
       // the crowd slides along them
       for (const wl of S.level.walls) {
+        if (wl.destroyed) continue; // rubble: no avoidance force
         const sx = wl.x2 - wl.x1, sz = wl.z2 - wl.z1;
         const len2 = sx * sx + sz * sz;
         let t = len2 > 1e-8 ? ((e.x - wl.x1) * sx + (e.z - wl.z1) * sz) / len2 : 0;

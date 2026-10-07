@@ -849,6 +849,11 @@ function updateGame(S, dt, input) {
         b.collected = true; // missed, hide
       }
     }
+    // prune collected banners so the array (and instance list) doesn't grow
+    // forever — spawns keep flowing until the level ends
+    if (v.banners.length > 96) {
+      v.banners = v.banners.filter(b => !b.collected);
+    }
   }
 
   // ---- win / lose ----

@@ -1,10 +1,10 @@
 name: Build game
 
-# Builds the single-file index.html from sources and commits it to main,
+# Builds the single-file index.html from sources and commits it back to main,
 # so GitHub Pages (main / root) always serves the latest passing build.
 on:
   push:
-    branches: [game-sources]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: game-sources
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
@@ -45,21 +45,14 @@ jobs:
       - name: Build single-file index.html
         run: |
           cd build
-          python3 build.py /tmp/index.html
-          ls -la /tmp/index.html
+          python3 build.py ../index.html
+          ls -la ../index.html
 
-      - name: Commit built index.html to main
+      - name: Commit built index.html
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main 2>/dev/null || true
-          if git show-ref --verify --quiet refs/remotes/origin/main; then
-            git checkout -B main origin/main
-          else
-            git checkout --orphan main
-            git rm -rf . > /dev/null 2>&1 || true
-          fi
-          cp /tmp/index.html ./index.html
           git add -f index.html
-          git commit -m "Build index.html from game-sources [skip ci]" || echo "no changes to commit"
-          git push -f origin main
+          # [skip ci] prevents the push from re-triggering this workflow
+          git commit -m "Build index.html [skip ci]" || echo "no changes to commit"
+          git push origin main

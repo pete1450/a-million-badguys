@@ -638,6 +638,7 @@ function enrichLevel(level, def) {
 function loadLevel(idx) {
   cur.levelIdx = idx;
   var def = LEVELS[idx];
+  cur.levelDef = def; // keep the raw JSON for the designer
   var S = createGame(def);
   enrichLevel(S.level, def);
   cur.S = S;
@@ -687,10 +688,21 @@ function designDef() {
 function snap(v) { return Math.round(v / GRID_SNAP) * GRID_SNAP; }
 
 function enterDesigner() {
+  // Start from the current level's JSON (deep copy). If you want something
+  // completely different, delete things — it's your canvas now.
+  var wasPlayingCustom = designer.playingCustom;
   designer.active = true;
   designer.playingCustom = false;
   designer.zoom = 1.0; designer.panX = 0; designer.panZ = 0;
-  designDef();
+  var srcDef = null;
+  if (wasPlayingCustom && designer.customDef) srcDef = designer.customDef;
+  else if (cur.levelDef) srcDef = cur.levelDef;
+  else if (cur.levelIdx >= 0 && LEVELS[cur.levelIdx]) srcDef = LEVELS[cur.levelIdx];
+  if (srcDef) {
+    designer.def = JSON.parse(JSON.stringify(srcDef));
+  } else {
+    designDef(); // blank template (shouldn't happen)
+  }
   // force top-down view
   if (!cur.topDown) document.getElementById('camBtn').click();
   document.getElementById('designerPanel').style.display = 'block';
@@ -980,6 +992,7 @@ function loadCustomLevel(def) {
   designer.customDef = JSON.parse(JSON.stringify(def)); // deep copy
   designer.playingCustom = true;
   designer.active = false;
+  cur.levelDef = designer.customDef;
   document.getElementById('designerPanel').classList.remove('open');
   document.getElementById('designerPanel').style.display = 'none';
   closePopup();
@@ -1264,7 +1277,7 @@ el.camBtn.addEventListener('click', function () {
   el.camBtn.style.color = cur.topDown ? '#000' : '';
 });
 el.againBtn.addEventListener('click', function () {
-  if (designer.playingCustom && designer.customDef) loadCustomLevel(designer.customDef);
+  if (designer.playingCustom && designer.customDef) backToDesigner();
   else loadLevel(cur.levelIdx);
 });
 // designer buttons
@@ -1405,6 +1418,8 @@ function showOverlay(won, stats) {
     'Leaked through: <b>' + stats.leaked + '</b><br>' +
     'Pickups collected: <b>' + stats.pickupCount + ' (+' + stats.pickupsGot + ' troops)</b><br>' +
     'Bridges dropped: <b>' + stats.columnsDown + '</b>';
+  // in designer-play mode the button goes back to the editor
+  el.againBtn.textContent = designer.playingCustom ? '🎨 Back to Designer' : 'Play again';
   el.overlay.classList.remove('hidden');
 }
 

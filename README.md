@@ -4,7 +4,7 @@ A voxel lane-defense arcade game in a single HTML file. Red crowd marches
 down the lane; your mob slides side-to-side, everything fires straight ahead.
 Positioning IS the aiming.
 
-**Play it:** https://pete1450.github.io/a-million-badguys/ (after Pages is enabled)
+**Play it:** https://pete1450.github.io/a-million-badguys/
 
 ## Repo layout
 

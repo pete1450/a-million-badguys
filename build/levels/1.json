@@ -1,0 +1,36 @@
+{
+  "depth": 88,
+  "modules": [
+    {
+      "count": 100,
+      "damage": 1,
+      "from": 43,
+      "hp": 1,
+      "kind": "base",
+      "perSecond": 1,
+      "speed": 2.1,
+      "to": 53,
+      "type": "enemy"
+    },
+    {
+      "at": 39,
+      "type": "wall"
+    },
+    {
+      "at": 59,
+      "type": "wall"
+    }
+  ],
+  "name": "Level 1",
+  "player": {
+    "at": 50,
+    "bulletDamage": 1,
+    "bulletSpeed": 46,
+    "fireRate": 4,
+    "hp": 150,
+    "mobSpeed": 20,
+    "pierce": 0,
+    "troopRate": 1
+  },
+  "width": 100
+}

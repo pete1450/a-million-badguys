@@ -850,7 +850,10 @@ function updateGame(S, dt, input) {
 // ================= Level(s) =================
 // Authored in INDEXED units (0..99). parseLevel scales x by IDX2W (0.5) so the
 // physical world stays 50 units wide — denser lanes, same playfield size.
-const LEVELS = [
+// LEVELS is injected by build.py from levels/*.json (see build.py).
+// When running under node directly (tests), fall back to the level 0
+// demonstrator so the suites don't need the build step.
+var LEVELS = (typeof LEVELS !== 'undefined' && LEVELS) || [
   {
     name: 'Bridge Choice',
     width: 100,

@@ -1,0 +1,49 @@
+{
+  "depth": 88,
+  "modules": [
+    {
+      "count": 200,
+      "damage": 1,
+      "from": 12,
+      "healthbar": false,
+      "hp": 1,
+      "kind": "base",
+      "perSecond": 1,
+      "speed": 2.1,
+      "to": 53,
+      "type": "enemy"
+    },
+    {
+      "color": 2846681,
+      "contents": {
+        "kind": "pickup",
+        "speed": 3.45,
+        "value": 1
+      },
+      "from": 72,
+      "shots": 3,
+      "to": 84,
+      "type": "viaduct"
+    },
+    {
+      "at": 57,
+      "type": "wall"
+    },
+    {
+      "at": 10,
+      "type": "wall"
+    }
+  ],
+  "name": "Level 2",
+  "player": {
+    "at": 50,
+    "bulletDamage": 1,
+    "bulletSpeed": 46,
+    "fireRate": 4,
+    "hp": 150,
+    "mobSpeed": 20,
+    "pierce": 0,
+    "troopRate": 1
+  },
+  "width": 100
+}

@@ -1,0 +1,65 @@
+name: Build game
+
+# Builds the single-file index.html from sources and commits it to main,
+# so GitHub Pages (main / root) always serves the latest passing build.
+on:
+  push:
+    branches: [game-sources]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: game-sources
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Syntax check
+        run: |
+          cd build
+          node --check logic.js
+          node --check game.js
+
+      - name: Logic tests
+        run: |
+          cd build
+          node test_logic.js
+
+      - name: Boot smoke test
+        run: |
+          cd build
+          node test_boot.js
+
+      - name: Build single-file index.html
+        run: |
+          cd build
+          python3 build.py /tmp/index.html
+          ls -la /tmp/index.html
+
+      - name: Commit built index.html to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/main; then
+            git checkout -B main origin/main
+          else
+            git checkout --orphan main
+            git rm -rf . > /dev/null 2>&1 || true
+          fi
+          cp /tmp/index.html ./index.html
+          git add -f index.html
+          git commit -m "Build index.html from game-sources [skip ci]" || echo "no changes to commit"
+          git push -f origin main

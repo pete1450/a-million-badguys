@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Crowd Control</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #9ecdf0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    touch-action: none; -webkit-user-select: none; user-select: none; }
+  #scene { position: fixed; inset: 0; }
+  #scene canvas { width: 100%; height: 100%; display: block; }
+  #hud {
+    position: fixed; top: 12px; left: 12px; z-index: 10;
+    background: rgba(12, 20, 32, 0.72);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+    padding: 12px 14px; color: #eef3fa; width: 210px;
+  }
+  #hud .title { font-size: 15px; font-weight: 700; letter-spacing: 0.6px; margin-bottom: 8px; }
+  #hud .title small { display: block; font-weight: 400; font-size: 11px; color: #9fb2cc; margin-top: 2px; }
+  #hud .row { display: flex; justify-content: space-between; font-size: 13px; margin: 5px 0; color: #cdd8ea; }
+  #hud .row b { color: #fff; font-variant-numeric: tabular-nums; }
+  .hpbar { height: 10px; border-radius: 6px; background: rgba(255,255,255,0.14); overflow: hidden; margin: 4px 0 8px; }
+  #hpFill { height: 100%; width: 100%; background: #5fd35f; border-radius: 6px; transition: width 0.15s; }
+  #hud .btns { display: flex; gap: 8px; margin-top: 8px; }
+  #hud button {
+    background: rgba(255,255,255,0.08); color: #eef3fa;
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 9px;
+    padding: 7px 11px; font-size: 14px; cursor: pointer; font-family: inherit; flex: 1;
+  }
+  #hud button:active { background: rgba(255,255,255,0.18); }
+  #levelNav { display: none; gap: 8px; margin-top: 8px; }
+  #hint {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 10;
+    color: rgba(20, 34, 52, 0.75); font-size: 12.5px; pointer-events: none;
+    white-space: nowrap; background: rgba(255,255,255,0.55);
+    padding: 6px 14px; border-radius: 20px;
+  }
+  #flash {
+    position: fixed; inset: 0; z-index: 9; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(255,40,40,0.85) 100%);
+    opacity: 0; transition: opacity 0.25s;
+  }
+  #overlay {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: rgba(8, 14, 24, 0.62); color: #fff;
+  }
+  #overlay.hidden { display: none; }
+  #ovTitle { font-size: 42px; font-weight: 800; letter-spacing: 2px; }
+  #ovStats { font-size: 15px; line-height: 1.9; text-align: center; color: #dbe4f2; }
+  #ovStats b { color: #fff; }
+  #againBtn {
+    background: #2f6fd0; color: #fff; border: none; border-radius: 12px;
+    padding: 12px 34px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  #againBtn:active { background: #3d80e4; }
+  /* ---- level designer ---- */
+  #designerPanel {
+    position: fixed; top: 12px; right: 12px; z-index: 15; width: 230px;
+    background: rgba(12, 20, 32, 0.88); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px; padding: 12px; color: #eef3fa; display: none;
+    max-height: calc(100% - 24px); overflow-y: auto;
+  }
+  #designerPanel.open { display: block; }
+  #designerPanel h3 { margin: 0 0 8px; font-size: 14px; }
+  #designerPanel .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  #designerPanel .tools button {
+    background: rgba(255,255,255,0.08); color: #eef3fa; border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; padding: 8px 4px; font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  #designerPanel .tools button.active { background: #2f6fd0; border-color: #5a9ae6; }
+  #designerPanel .row { display: flex; gap: 6px; margin: 8px 0; }
+  #designerPanel .row button {
+    flex: 1; background: #2f6fd0; color: #fff; border: none; border-radius: 8px;
+    padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  #designerPanel .row button.ghost { background: rgba(255,255,255,0.1); }
+  #designerJson {
+    width: 100%; height: 120px; background: rgba(0,0,0,0.4); color: #cfe3ff;
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 8px;
+    font-family: monospace; font-size: 10px; padding: 6px; box-sizing: border-box;
+  }
+  #itemPopup {
+    position: fixed; z-index: 25; background: rgba(16, 26, 40, 0.95);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px;
+    color: #eef3fa; width: 240px; display: none; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  #itemPopup.open { display: block; }
+  #itemPopup h4 { margin: 0 0 8px; font-size: 13px; }
+  #itemPopup label { display: block; font-size: 11px; color: #9fb2cc; margin: 6px 0 2px; }
+  #itemPopup input, #itemPopup select {
+    width: 100%; background: rgba(0,0,0,0.4); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px; padding: 5px 8px; font-size: 12px; box-sizing: border-box; font-family: inherit;
+  }
+  #itemPopup .prow { display: flex; gap: 6px; }
+  #itemPopup .prow > div { flex: 1; }
+  #itemPopup .btnrow { display: flex; gap: 6px; margin-top: 10px; }
+  #itemPopup .btnrow button {
+    flex: 1; padding: 7px; border-radius: 8px; border: none; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  #itemPopup .apply { background: #2f6fd0; color: #fff; }
+  #itemPopup .del { background: #a33327; color: #fff; }
+  #itemPopup .close { background: rgba(255,255,255,0.12); color: #fff; }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="flash"></div>
+<div id="hud">
+  <div class="title">CROWD CONTROL<small id="levelName">Bridge Choice</small></div>
+  <div class="row"><span>Enemies left</span><b id="enemiesLeft">–</b></div>
+  <div class="hpbar"><div id="hpFill"></div></div>
+  <div class="row"><span>Squad</span><b id="squadCount">0</b></div>
+  <div class="btns">
+    <button id="pauseBtn">⏸</button>
+    <button id="restartBtn">⟳</button>
+    <button id="focusBtn" title="Concentrated fire">🎯</button>
+    <button id="camBtn" title="Top-down view">🗺️</button>
+    <button id="desBtn" title="Level designer">🎨</button>
+  </div>
+  <div id="levelNav">
+    <button id="prevBtn">‹</button>
+    <button id="nextBtn">›</button>
+  </div>
+</div>
+<div id="hint">Drag to slide your mob &middot; click to lock the mouse &middot; line up with a pillar to drop its bridge</div>
+<div id="overlay" class="hidden">
+  <div id="ovTitle"></div>
+  <div id="ovStats"></div>
+  <button id="againBtn">Play again</button>
+</div>
+<div id="designerPanel">
+  <h3>🎨 Level Designer</h3>
+  <div class="tools">
+    <button data-tool="select" class="active">⬆️ Select</button>
+    <button data-tool="wallV">🧱 Wall V</button>
+    <button data-tool="wallA">📐 Wall ∠</button>
+    <button data-tool="boulder">🪨 Boulder</button>
+    <button data-tool="enemy">👹 Enemy</button>
+    <button data-tool="viaduct">🌉 Viaduct</button>
+    <button data-tool="eraser">🧽 Eraser</button>
+  </div>
+  <div class="row">
+    <button id="desPlayBtn">▶ Play</button>
+    <button id="desExitBtn" class="ghost">✕ Exit</button>
+  </div>
+  <label style="font-size:11px;color:#9fb2cc">Level JSON (edit + Apply):</label>
+  <textarea id="designerJson" spellcheck="false"></textarea>
+  <div class="row">
+    <button id="desCopyBtn" class="ghost">📋 Copy</button>
+    <button id="desApplyBtn">Apply JSON</button>
+  </div>
+  <div class="row">
+    <button id="desBackBtn" class="ghost" style="display:none">🎨 Back to Designer</button>
+  </div>
+</div>
+<div id="itemPopup">
+  <h4 id="popupTitle">Item</h4>
+  <div id="popupFields"></div>
+  <div class="btnrow">
+    <button class="apply" id="popupApply">Apply</button>
+    <button class="del" id="popupDelete">Delete</button>
+    <button class="close" id="popupClose">✕</button>
+  </div>
+</div>
+<script>

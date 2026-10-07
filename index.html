@@ -404,12 +404,17 @@ function parseLevel(def) {
       // banners ARE the pickups: pre-placed in a line on the deck, released
       // (start drifting toward the mob) when the column is destroyed.
       // They never run out: new ones keep spawning at the back until game over.
+      // Spacing = speed / perSecond, so the pre-placed line matches the
+      // steady-state flow of spawned ones.
       const bval = (v.contents.value !== undefined) ? v.contents.value : 1;
       const bspd = (v.contents.speed !== undefined) ? v.contents.speed : 3.0;
+      const brate = (v.contents.perSecond !== undefined) ? v.contents.perSecond : 1 / 3;
       v.bannerValue = bval;
       v.bannerSpeed = bspd;
+      v.bannerRate = brate;
       v.bannerTimer = 0;
-      for (let bz = deckZ0 + 2; bz < deckZ1; bz += 4) {
+      const bspacing = bspd / brate;
+      for (let bz = deckZ0 + 2; bz < deckZ1; bz += bspacing) {
         v.banners.push({
           id: nextId(), x: v.cx, z: bz,
           value: bval, speed: bspd, color: v.color,
@@ -1002,7 +1007,7 @@ function updateGame(S, dt, input) {
     // infinite supply: keep spawning at the back until the game ends
     v.bannerTimer -= dt;
     if (v.bannerTimer <= 0) {
-      v.bannerTimer = 3; // every 3s, stays spaced out
+      v.bannerTimer = 1 / v.bannerRate; // spacing = speed / perSecond
       v.banners.push({
         id: nextId(), x: v.cx, z: v.deckZ0 + 2,
         value: v.bannerValue, speed: v.bannerSpeed, color: v.color,
@@ -1658,9 +1663,10 @@ function buildWorld(level) {
       rail.position.set(v.cx, DECK_Y + 1.35, z);
       g.add(rail);
     });
-    // banners ARE the pickups: ONE object (box with the +1/+10 texture on its
+    // banners ARE the pickups: ONE object (box with the +X texture on its
     // front face via material groups). Impossible for the label to separate.
-    var faceTex = bannerTex(vi === 0 ? '+1' : '+10',
+    // The label shows the actual contents.value (not hardcoded +1/+10).
+    var faceTex = bannerTex('+' + v.bannerValue,
       vi === 0 ? '#3f8ef2' : '#f7c948', vi === 0 ? '#1c55b0' : '#d1941a');
     var bannerGeo = new THREE.BoxGeometry(3.15, 4.8, 0.54);
     var sideMat = phong(v.color, 60);
@@ -2017,6 +2023,7 @@ function openPopup(idx, clientX, clientY) {
     numField('shots', 'Column shots', m.shots || 3);
     numField('contents.value', 'Banner value', (m.contents && m.contents.value) || 1);
     numField('contents.speed', 'Banner speed', (m.contents && m.contents.speed) || 3.45, 0.1);
+    numField('contents.perSecond', 'Banner per second', (m.contents && m.contents.perSecond) || 0.33, 0.05);
   }
   fields.innerHTML = html;
   // position near click, clamped to viewport

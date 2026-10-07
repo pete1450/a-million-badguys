@@ -583,9 +583,10 @@ function buildWorld(level) {
       rail.position.set(v.cx, DECK_Y + 1.35, z);
       g.add(rail);
     });
-    // banners ARE the pickups: ONE object (box with the +1/+10 texture on its
+    // banners ARE the pickups: ONE object (box with the +X texture on its
     // front face via material groups). Impossible for the label to separate.
-    var faceTex = bannerTex(vi === 0 ? '+1' : '+10',
+    // The label shows the actual contents.value (not hardcoded +1/+10).
+    var faceTex = bannerTex('+' + v.bannerValue,
       vi === 0 ? '#3f8ef2' : '#f7c948', vi === 0 ? '#1c55b0' : '#d1941a');
     var bannerGeo = new THREE.BoxGeometry(3.15, 4.8, 0.54);
     var sideMat = phong(v.color, 60);
@@ -942,6 +943,7 @@ function openPopup(idx, clientX, clientY) {
     numField('shots', 'Column shots', m.shots || 3);
     numField('contents.value', 'Banner value', (m.contents && m.contents.value) || 1);
     numField('contents.speed', 'Banner speed', (m.contents && m.contents.speed) || 3.45, 0.1);
+    numField('contents.perSecond', 'Banner per second', (m.contents && m.contents.perSecond) || 0.33, 0.05);
   }
   fields.innerHTML = html;
   // position near click, clamped to viewport

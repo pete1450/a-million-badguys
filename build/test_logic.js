@@ -15,10 +15,17 @@ const lv = L.parseLevel(def);
 const enemyEm = lv.emitters.filter(e => e.kind === 'enemy');
 ok(enemyEm.length === 44, 'enemy emitters: 43 base + 1 big = ' + enemyEm.length);
 // banners ARE the pickups: pre-placed lines on the decks
+// spacing = speed / perSecond
 const leftV = lv.viaducts.find(v => v.from === 0);
 const rightV = lv.viaducts.find(v => v.from === 37);
-ok(leftV.banners.length === 15 && rightV.banners.length === 15,
-  'banners: 15 per viaduct = ' + leftV.banners.length + '/' + rightV.banners.length);
+const expSpacing = leftV.bannerSpeed / leftV.bannerRate;
+const leftGaps = [];
+for (let i = 1; i < leftV.banners.length; i++) leftGaps.push(leftV.banners[i].z - leftV.banners[i-1].z);
+const avgGap = leftGaps.reduce((a, b) => a + b, 0) / leftGaps.length;
+ok(Math.abs(avgGap - expSpacing) < 0.01,
+  'banner spacing = speed/perSecond = ' + avgGap.toFixed(2));
+ok(leftV.banners.length === rightV.banners.length && leftV.banners.length > 0,
+  'banners pre-placed: ' + leftV.banners.length + '/' + rightV.banners.length);
 ok(Math.abs(leftV.banners[0].x - 6.0) < 1e-9,
   'banner line runs down the bridge center (x=6.0)');
 ok(leftV.banners.every(b => b.value === 1) && rightV.banners.every(b => b.value === 10),

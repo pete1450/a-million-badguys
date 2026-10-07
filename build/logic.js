@@ -226,12 +226,17 @@ function parseLevel(def) {
       // banners ARE the pickups: pre-placed in a line on the deck, released
       // (start drifting toward the mob) when the column is destroyed.
       // They never run out: new ones keep spawning at the back until game over.
+      // Spacing = speed / perSecond, so the pre-placed line matches the
+      // steady-state flow of spawned ones.
       const bval = (v.contents.value !== undefined) ? v.contents.value : 1;
       const bspd = (v.contents.speed !== undefined) ? v.contents.speed : 3.0;
+      const brate = (v.contents.perSecond !== undefined) ? v.contents.perSecond : 1 / 3;
       v.bannerValue = bval;
       v.bannerSpeed = bspd;
+      v.bannerRate = brate;
       v.bannerTimer = 0;
-      for (let bz = deckZ0 + 2; bz < deckZ1; bz += 4) {
+      const bspacing = bspd / brate;
+      for (let bz = deckZ0 + 2; bz < deckZ1; bz += bspacing) {
         v.banners.push({
           id: nextId(), x: v.cx, z: bz,
           value: bval, speed: bspd, color: v.color,
@@ -824,7 +829,7 @@ function updateGame(S, dt, input) {
     // infinite supply: keep spawning at the back until the game ends
     v.bannerTimer -= dt;
     if (v.bannerTimer <= 0) {
-      v.bannerTimer = 3; // every 3s, stays spaced out
+      v.bannerTimer = 1 / v.bannerRate; // spacing = speed / perSecond
       v.banners.push({
         id: nextId(), x: v.cx, z: v.deckZ0 + 2,
         value: v.bannerValue, speed: v.bannerSpeed, color: v.color,

@@ -1,0 +1,116 @@
+{
+  "depth": 88,
+  "modules": [
+    {
+      "from": [
+        19,
+        16
+      ],
+      "to": [
+        80,
+        16
+      ],
+      "type": "wall"
+    },
+    {
+      "count": 1000,
+      "damage": 1,
+      "from": 86,
+      "healthbar": false,
+      "hp": 1,
+      "kind": "base",
+      "perSecond": 3,
+      "speed": 2.1,
+      "to": 96,
+      "type": "enemy"
+    },
+    {
+      "color": 2846681,
+      "contents": {
+        "kind": "pickup",
+        "perSecond": 1,
+        "speed": 6,
+        "value": 2
+      },
+      "from": -1,
+      "shots": 3,
+      "to": 11,
+      "type": "viaduct"
+    },
+    {
+      "destructible": false,
+      "from": [
+        95,
+        64
+      ],
+      "mirror": true,
+      "to": [
+        71,
+        52
+      ],
+      "type": "wall"
+    },
+    {
+      "destructible": false,
+      "from": [
+        38,
+        65
+      ],
+      "mirror": true,
+      "to": [
+        14,
+        53
+      ],
+      "type": "wall"
+    },
+    {
+      "destructible": false,
+      "from": [
+        11,
+        34
+      ],
+      "mirror": true,
+      "to": [
+        34,
+        22
+      ],
+      "type": "wall"
+    },
+    {
+      "destructible": false,
+      "from": [
+        83,
+        37
+      ],
+      "mirror": true,
+      "to": [
+        102,
+        26
+      ],
+      "type": "wall"
+    },
+    {
+      "from": [
+        86,
+        41
+      ],
+      "to": [
+        53,
+        45
+      ],
+      "type": "wall"
+    }
+  ],
+  "name": "Level 3",
+  "player": {
+    "at": 50,
+    "bulletDamage": 1,
+    "bulletSpeed": 46,
+    "fireRate": 4,
+    "hp": 150,
+    "mobSpeed": 20,
+    "pierce": 0,
+    "troopRate": 1
+  },
+  "width": 100
+}
